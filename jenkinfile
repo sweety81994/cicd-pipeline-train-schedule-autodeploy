@@ -9,7 +9,7 @@ pipeline {
         stage('checkout'){
             agent any
             steps{
-                git 'https://github.com/sweety81994/cicd-pipeline-train-schedule-autodeploy.git'
+                git branch: 'master', url: 'https://github.com/sweety81994/cicd-pipeline-train-schedule-autodeploy.git'
             }
         }
         stage('compile'){
@@ -34,19 +34,17 @@ pipeline {
         stage('package'){
             agent {label 'linux_slave'}
             steps{
-                git 'https://github.com/sweety81994/cicd-pipeline-train-schedule-autodeploy.git'
+                git branch: 'master', url: 'https://github.com/sweety81994/cicd-pipeline-train-schedule-autodeploy.git'
                 sh 'mvn package'
             }
         
         }
-    }
    
-    agent any 
     environment {
         DOCKER_IMAGE_NAME = "kavitha08/train-schedule"
     }
-    stages {
         stage('Build') {
+        agent {label 'linux_slave'}
             steps {
                 echo 'Running build automation'
                 sh './gradlew build --no-daemon'
@@ -54,10 +52,12 @@ pipeline {
             }
         }
         stage('Build Docker Image') {
+        agent {label 'linux_slave'}
             when {
                 branch 'master'
             }
             steps {
+        
                 script {
                     app = docker.build(DOCKER_IMAGE_NAME)
                     app.inside {
@@ -67,6 +67,7 @@ pipeline {
             }
         }
         stage('Push Docker Image') {
+        agent {label 'linux_slave'}
             when {
                 branch 'master'
             }
@@ -80,6 +81,7 @@ pipeline {
             }
         }
         stage('CanaryDeploy') {
+        agent {label 'linux_slave'}
             when {
                 branch 'master'
             }
@@ -95,6 +97,7 @@ pipeline {
             }
         }
         stage('DeployToProduction') {
+        agent {label 'linux_slave'}
             when {
                 branch 'master'
             }
